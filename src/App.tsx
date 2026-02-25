@@ -288,6 +288,8 @@ function MenuOverlay({ onClose }: { onClose: () => void }) {
           <div className="kc-neon-divider" style={{ margin: '8px 0' }} />
           <button className="kc-send-btn" style={{ width: '100%', background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)' }}
             onClick={() => { resetGame(); onClose() }}>🔄 重新开始</button>
+          <button className="kc-send-btn" style={{ width: '100%', background: 'rgba(139,92,246,0.15)', color: 'var(--primary)', border: '1px solid var(--primary-border)' }}
+            onClick={() => window.open('https://yooho.ai/', '_blank')}>🌐 返回主页</button>
           <button className="kc-send-btn" style={{ width: '100%', background: 'transparent', color: 'var(--text-muted)', border: '1px solid var(--border)' }}
             onClick={onClose}>继续游戏</button>
         </div>

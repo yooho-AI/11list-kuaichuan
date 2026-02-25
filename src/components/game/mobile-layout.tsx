@@ -155,6 +155,7 @@ function MobileMenu({ onClose }: { onClose: () => void }) {
       )}
       <button className="mobile-menu-btn" style={{ borderColor: 'rgba(239,68,68,0.3)', color: '#ef4444' }}
         onClick={() => { resetGame(); onClose() }}>🔄 重置</button>
+      <button className="mobile-menu-btn" onClick={() => window.open('https://yooho.ai/', '_blank')}>🌐 返回主页</button>
       <button className="mobile-menu-btn" onClick={onClose}>继续游戏</button>
     </motion.div>
   )
