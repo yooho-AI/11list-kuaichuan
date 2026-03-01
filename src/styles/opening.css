@@ -1,0 +1,181 @@
+/**
+ * [INPUT]: 依赖 globals.css CSS 变量
+ * [OUTPUT]: 开场页 + 世界选择页全部样式——暗紫灵魂系
+ * [POS]: styles 的开场专用样式，灵魂镜面 + 世界卡片 + 性别选择
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
+
+/* ================================================================
+   Start Screen — 灵魂契约开场
+   ================================================================ */
+
+.kc-start-bg {
+  position: fixed; inset: 0; overflow-y: auto;
+  background:
+    radial-gradient(ellipse at 50% 20%, rgba(139, 92, 246, 0.15) 0%, transparent 60%),
+    radial-gradient(ellipse at 20% 80%, rgba(255, 107, 157, 0.08) 0%, transparent 50%),
+    var(--bg-base);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 100dvh;
+}
+
+/* ── 标题区 ── */
+.kc-start-title {
+  text-align: center; margin-bottom: 28px;
+}
+.kc-start-mirror {
+  font-size: 48px; margin-bottom: 10px; display: inline-block;
+  animation: kcMirrorRipple 3s ease-in-out infinite;
+}
+.kc-start-name {
+  font-size: 26px; font-weight: 700; color: var(--text-primary);
+  letter-spacing: 3px; margin-bottom: 6px;
+}
+.kc-start-subtitle {
+  font-size: 14px; color: var(--text-secondary); margin-bottom: 10px;
+}
+.kc-start-desc {
+  font-size: 12px; color: var(--text-muted); line-height: 1.7;
+  max-width: 360px; margin: 0 auto;
+}
+
+/* ── 性别选择 ── */
+.kc-gender-grid {
+  display: flex; gap: 8px; margin-bottom: 20px;
+}
+.kc-gender-btn {
+  flex: 1; padding: 10px 0; border-radius: 10px; cursor: pointer;
+  border: 1px solid var(--border);
+  background: rgba(26, 16, 48, 0.5);
+  color: var(--text-secondary); font-size: 14px; font-weight: 400;
+  transition: all 0.2s;
+}
+.kc-gender-btn:active { transform: scale(0.97); }
+.kc-gender-active {
+  border-color: var(--primary);
+  background: rgba(139, 92, 246, 0.15);
+  color: var(--primary); font-weight: 600;
+}
+
+/* ── 世界预览网格 ── */
+.kc-world-preview {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;
+  margin-bottom: 24px;
+}
+.kc-world-preview-card {
+  padding: 12px; border-radius: 12px;
+  background: var(--bg-card); border: 1px solid var(--border);
+}
+.kc-world-preview-icon { font-size: 20px; margin-bottom: 4px; }
+.kc-world-preview-name { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+.kc-world-preview-desc { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+
+/* ── 开始 / 继续按钮 ── */
+.kc-start-actions {
+  display: flex; flex-direction: column; gap: 8px; width: 100%;
+}
+.kc-start-btn {
+  width: 100%; padding: 13px 0; border-radius: 12px;
+  border: none; font-size: 15px; font-weight: 600; letter-spacing: 2px;
+  cursor: pointer; transition: all 0.2s;
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  color: #fff; box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
+}
+.kc-start-btn:active { transform: scale(0.97); }
+.kc-start-btn:disabled { opacity: 0.3; pointer-events: none; }
+
+.kc-continue-btn {
+  width: 100%; padding: 12px 0; border-radius: 12px;
+  background: rgba(139, 92, 246, 0.08);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  color: rgba(139, 92, 246, 0.7); font-size: 14px; font-weight: 500;
+  letter-spacing: 1px; cursor: pointer; transition: all 0.2s;
+}
+.kc-continue-btn:active { transform: scale(0.97); background: rgba(139, 92, 246, 0.15); }
+
+/* ── 音乐切换 ── */
+.kc-start-music {
+  text-align: center; margin-top: 16px;
+}
+.kc-start-music button {
+  background: none; border: none; cursor: pointer;
+  color: var(--text-muted); padding: 6px;
+  transition: color 0.2s;
+}
+.kc-start-music button:hover { color: var(--primary); }
+
+/* ================================================================
+   World Selection — 灰色空间
+   ================================================================ */
+
+.kc-grayspace-header {
+  text-align: center; margin-bottom: 24px;
+}
+.kc-grayspace-mirror {
+  font-size: 36px; margin-bottom: 8px; display: inline-block;
+  animation: kcMirrorRipple 3s ease-in-out infinite;
+}
+.kc-grayspace-title {
+  font-size: 20px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px;
+}
+.kc-grayspace-meta {
+  font-size: 13px; color: var(--text-secondary);
+}
+.kc-grayspace-memories {
+  margin-top: 8px; font-size: 12px; color: var(--text-muted); font-style: italic;
+}
+
+/* ── 世界选择卡片 ── */
+.kc-world-list {
+  display: flex; flex-direction: column; gap: 12px;
+}
+.kc-world-card {
+  border-radius: 14px; overflow: hidden; cursor: pointer;
+  background: var(--bg-card); border: 1px solid var(--border);
+  transition: all 0.2s;
+}
+.kc-world-card:hover {
+  border-color: rgba(139, 92, 246, 0.35);
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.12);
+}
+.kc-world-card:active { transform: scale(0.99); }
+.kc-world-card.completed {
+  opacity: 0.5; cursor: not-allowed;
+}
+.kc-world-card.completed:hover {
+  border-color: var(--border); box-shadow: none;
+}
+.kc-world-card-inner {
+  padding: 16px; display: flex; gap: 14px; align-items: center;
+}
+.kc-world-card-icon {
+  font-size: 32px; flex-shrink: 0;
+}
+.kc-world-card-body { flex: 1; }
+.kc-world-card-name {
+  font-size: 15px; font-weight: 600; margin-bottom: 4px;
+  display: flex; align-items: center; gap: 8px;
+  color: var(--text-primary);
+}
+.kc-world-card-done {
+  font-size: 11px; color: var(--text-muted); font-weight: 400;
+}
+.kc-world-card-desc {
+  font-size: 12px; color: var(--text-secondary); line-height: 1.5;
+}
+
+/* ── 灵魂粒子装饰 ── */
+.kc-soul-particles {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+}
+.kc-soul-particle {
+  position: absolute; border-radius: 50%;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.4) 0%, transparent 70%);
+  animation: kcSoulFloat linear infinite;
+}
+@keyframes kcSoulFloat {
+  0%   { opacity: 0; transform: translateY(0) scale(0.3); }
+  20%  { opacity: 0.6; }
+  80%  { opacity: 0.6; }
+  100% { opacity: 0; transform: translateY(-100px) scale(0.8); }
+}

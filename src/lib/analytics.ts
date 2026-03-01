@@ -32,3 +32,7 @@ export const trackWorldComplete = (world: string, fragments: number) =>
   trackEvent('world_complete', { world, fragments })
 export const trackMemoryLost = (count: number) =>
   trackEvent('memory_lost', { count })
+export const trackSceneUnlock = (scene: string) =>
+  trackEvent('scene_unlock', { scene })
+export const trackStaminaCrisis = (stamina: number) =>
+  trackEvent('stamina_crisis', { stamina })

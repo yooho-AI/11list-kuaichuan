@@ -74,3 +74,18 @@ export function useBgm() {
 
   return { isPlaying, toggle }
 }
+
+// ── Standalone helpers (for non-hook contexts) ──
+
+export function toggleBGM() {
+  if (!globalAudio) return
+  if (globalAudio.paused) {
+    globalAudio.play().catch(() => {})
+  } else {
+    globalAudio.pause()
+  }
+}
+
+export function isBGMPlaying(): boolean {
+  return globalAudio ? !globalAudio.paused : false
+}

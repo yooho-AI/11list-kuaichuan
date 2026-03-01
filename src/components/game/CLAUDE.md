@@ -4,23 +4,25 @@ L2 | 父级: /11list-kuaichuan/CLAUDE.md
 
 ## 成员清单
 
-- `character-panel.tsx`: PC 端左侧面板，场景卡片/场景选择(worldId 过滤)/角色立绘/角色信息(StatMeta 驱动)/PlayerStatsBar(5属性)/角色列表
-- `dialogue-panel.tsx`: PC 端中间对话面板，LetterCard 介绍信/消息列表/流式消息/输入区+背包入口
-- `side-panel.tsx`: PC 端右侧面板，背包(道具使用)/关系总览(好感排序)/导航按钮
-- `mobile-layout.tsx`: 移动端自适应布局，MobileHeader/CharacterSheet/InventorySheet/SceneSheet/MobileMenu/EndingSheet
-- `highlight-modal.tsx`: 高光时刻弹窗，5阶段(分析→选择→风格→生成→结果)，主色 #8b5cf6，暗色主题
+- `app-shell.tsx`: 游戏主框架：430px居中壳 + Header(世界/天数/时段/碎片/音乐/菜单) + Tab路由(AnimatePresence) + TabBar(5键：手帐/对话/场景/人物/记录) + 三向手势 + DashboardDrawer + RecordSheet(右滑抽屉) + Toast
+- `dashboard-drawer.tsx`: 灵魂手帐(左抽屉)：Reorder拖拽排序8段(front/soul/cast/scenes/objectives/items/stats/music) + localStorage持久化 + 世界过滤角色/场景/道具
+- `tab-dialogue.tsx`: 对话Tab：富消息路由(SceneCard/DayCard/WorldCard/NPC头像气泡/LetterCard/SystemBubble) + StreamingMessage + CollapsibleChoices(A/B/C/D卡片) + InventorySheet(底部弹出) + InputArea(背包+输入+发送)
+- `tab-scene.tsx`: 场景Tab：SceneHero(9:16大图+渐变遮罩) + 场景描述 + 当前世界地点列表(解锁/锁定/当前状态)
+- `tab-character.tsx`: 人物Tab：全局属性网格(2列) + SVG RelationGraph(中心"我"+4NPC) + 角色网格(2×2) + CharacterDossier(全屏右滑，50vh立绘+好感阶段+双条+秘密≥60解锁)
 
 ## 依赖关系
 
-- 全部依赖 `@/lib/store` 的 useGameStore
-- `highlight-modal.tsx` 额外依赖 `@/lib/highlight` 全部导出
-- `dialogue-panel.tsx` 额外依赖 `@/lib/parser` 的 parseStoryParagraph
-- `mobile-layout.tsx` 额外依赖 `@/lib/parser` + `@/lib/bgm`
+- 全部依赖 `@/lib/store` 的 useGameStore 及 re-export 的常量/类型
+- `app-shell.tsx` 额外依赖 `@/lib/bgm` 的 toggleBGM
+- `dashboard-drawer.tsx` 额外依赖 `@/lib/bgm` 的 toggleBGM / isBGMPlaying
+- `tab-dialogue.tsx` 额外依赖 `@/lib/store` re-export 的 SCENES / ITEMS / WORLDS / parseStoryParagraph / getWorldItems
 
 ## 样式约定
 
 - CSS class 前缀: `kc-`
-- 主题色: #8b5cf6 (紫色), 暗色背景 #0f0a1a/#1a1030
-- 动画: kcSoulPulse (灵魂脉冲), kcMirrorRipple (镜面涟漪), kcTypingBounce (打字弹跳)
+- 主题色: #8b5cf6 (灵魂紫), 暗色背景 #0f0a1a
+- 动画: kcPulse (呼吸脉冲), kcMirrorRipple (镜面涟漪), kcTypingBounce (打字弹跳)
+- Phosphor Icons (@phosphor-icons/react): 所有功能性图标
+- emoji 仅用于内容展示（道具icon、灵魂碎片💎、记忆💔）
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

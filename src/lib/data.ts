@@ -1,13 +1,11 @@
 /**
  * [INPUT]: 无外部依赖
- * [OUTPUT]: 对外提供游戏全部类型定义、常量、4世界角色/场景/道具/章节/事件/结局数据
- * [POS]: lib 核心数据层，被 store.ts 消费，是整个四世界快穿系统的数据基石
+ * [OUTPUT]: 对外提供全部类型定义 + 角色/场景/道具/章节/事件/结局常量
+ * [POS]: UI 薄层，叙事内容在 script.md
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
-// ============================================================
-// 类型定义
-// ============================================================
+// ── 时间系统 ─────────────────────────────────────────
 
 export interface TimePeriod {
   index: number
@@ -16,13 +14,40 @@ export interface TimePeriod {
   hours: string
 }
 
+export const PERIODS: TimePeriod[] = [
+  { index: 0, name: '清晨', icon: '🌅', hours: '05:00-08:59' },
+  { index: 1, name: '上午', icon: '☀️', hours: '09:00-11:59' },
+  { index: 2, name: '中午', icon: '🌞', hours: '12:00-13:59' },
+  { index: 3, name: '下午', icon: '⛅', hours: '14:00-16:59' },
+  { index: 4, name: '傍晚', icon: '🌇', hours: '17:00-19:59' },
+  { index: 5, name: '深夜', icon: '🌙', hours: '20:00-04:59' },
+]
+
+export const MAX_DAYS = 30
+export const MAX_ACTION_POINTS = 6
+
+// ── 属性元数据 ───────────────────────────────────────
+
 export interface StatMeta {
   key: string
   label: string
   color: string
   icon: string
-  category?: 'relation' | 'status' | 'skill'
+  min: number
+  max: number
+  initial: number
+  category: 'relation' | 'status' | 'skill'
 }
+
+export const GLOBAL_STATS: StatMeta[] = [
+  { key: 'beauty', label: '颜值', min: 0, max: 100, initial: 80, color: '#ff6b9d', icon: '✨', category: 'status' },
+  { key: 'wisdom', label: '智慧', min: 0, max: 100, initial: 85, color: '#4fc3f7', icon: '📖', category: 'skill' },
+  { key: 'stamina', label: '体力', min: 0, max: 100, initial: 70, color: '#66bb6a', icon: '💪', category: 'status' },
+  { key: 'charm', label: '魅力', min: 0, max: 100, initial: 85, color: '#ab47bc', icon: '💜', category: 'skill' },
+  { key: 'luck', label: '运气', min: 0, max: 100, initial: 50, color: '#ffa726', icon: '🍀', category: 'status' },
+]
+
+// ── 角色 ─────────────────────────────────────────────
 
 export type CharacterStats = Record<string, number>
 
@@ -30,8 +55,7 @@ export interface Character {
   id: string
   worldId: string
   name: string
-  avatar: string
-  fullImage: string
+  portrait: string
   gender: 'female' | 'male'
   age: number
   title: string
@@ -47,140 +71,14 @@ export interface Character {
   initialStats: CharacterStats
 }
 
-export interface World {
-  id: string
-  name: string
-  icon: string
-  description: string
-  background: string
-  atmosphere: string
-}
-
-export interface Scene {
-  id: string
-  worldId: string
-  name: string
-  icon: string
-  description: string
-  background: string
-  atmosphere: string
-  tags: string[]
-  unlockCondition?: {
-    event?: string
-    stat?: { charId: string; key: string; min: number }
-  }
-}
-
-export interface GameItem {
-  id: string
-  worldId: string | 'universal'
-  name: string
-  icon: string
-  type: 'consumable' | 'collectible' | 'quest' | 'social'
-  description: string
-  maxCount?: number
-}
-
-export interface Chapter {
-  id: number
-  name: string
-  dayRange: [number, number]
-  description: string
-  objectives: string[]
-  atmosphere: string
-}
-
-export interface ForcedEvent {
-  id: string
-  name: string
-  triggerDay: number
-  triggerPeriod?: number
-  description: string
-}
-
-export interface Ending {
-  id: string
-  name: string
-  type: 'TE' | 'HE' | 'NE' | 'BE'
-  description: string
-  condition: string
-}
-
-export interface Message {
-  id: string
-  role: 'user' | 'assistant' | 'system'
-  content: string
-  character?: string
-  timestamp: number
-}
-
-// ============================================================
-// 常量
-// ============================================================
-
-export const PERIODS: TimePeriod[] = [
-  { index: 0, name: '清晨', icon: '🌅', hours: '05:00-08:59' },
-  { index: 1, name: '上午', icon: '☀️', hours: '09:00-11:59' },
-  { index: 2, name: '中午', icon: '🌞', hours: '12:00-13:59' },
-  { index: 3, name: '下午', icon: '⛅', hours: '14:00-16:59' },
-  { index: 4, name: '傍晚', icon: '🌇', hours: '17:00-19:59' },
-  { index: 5, name: '深夜', icon: '🌙', hours: '20:00-04:59' },
-]
-
-export const MAX_DAYS = 30
-export const MAX_ACTION_POINTS = 6
-
-// ============================================================
-// 共享 StatMeta 模板（所有角色: 好感度 + 信任度）
-// ============================================================
+// ── 共享 StatMeta 模板（所有角色: 好感度 + 信任度） ──
 
 const RELATION_STATS: StatMeta[] = [
-  { key: 'affection', label: '好感', color: '#ff6b9d', icon: '❤️', category: 'relation' },
-  { key: 'trust', label: '信任', color: '#4fc3f7', icon: '🤝', category: 'relation' },
+  { key: 'affection', label: '好感', min: 0, max: 100, initial: 0, color: '#ff6b9d', icon: '❤️', category: 'relation' },
+  { key: 'trust', label: '信任', min: 0, max: 100, initial: 0, color: '#4fc3f7', icon: '🤝', category: 'relation' },
 ]
 
-// ============================================================
-// 四个世界
-// ============================================================
-
-export const WORLDS: World[] = [
-  {
-    id: 'palace',
-    name: '权谋深宫',
-    icon: '🏯',
-    description: '大胤王朝，天启十三年。你是一名身份低微的宫女，被卷入后宫争斗的漩涡。',
-    background: '/scenes/palace.jpg',
-    atmosphere: '金碧辉煌的宫殿，暗流涌动的权力博弈',
-  },
-  {
-    id: 'academy',
-    name: '学院奇缘',
-    icon: '🏫',
-    description: '星辉学院，精英云集的私立高中。你是一名转学生，四位性格迥异的男生闯入你的生活。',
-    background: '/scenes/academy.jpg',
-    atmosphere: '阳光明媚的校园，青春洋溢的气息',
-  },
-  {
-    id: 'xianmen',
-    name: '仙门传说',
-    icon: '⛰️',
-    description: '玄天大陆，修仙盛世。你是资质平庸的外门弟子，因奇遇获得上古传承。',
-    background: '/scenes/xianmen.jpg',
-    atmosphere: '云雾缭绕的仙山，剑气纵横的修仙世界',
-  },
-  {
-    id: 'apocalypse',
-    name: '末世求生',
-    icon: '🏚️',
-    description: '病毒爆发后的第三年，人类文明濒临崩溃。你是一名幸存者，在废墟中寻找生机。',
-    background: '/scenes/apocalypse.jpg',
-    atmosphere: '废墟遍地的末世，危机四伏的求生之路',
-  },
-]
-
-// ============================================================
-// 角色工厂
-// ============================================================
+// ── 角色工厂 ─────────────────────────────────────────
 
 function makeChar(
   worldId: string, id: string, name: string, themeColor: string,
@@ -192,7 +90,7 @@ function makeChar(
     id, worldId, name, themeColor, gender: 'male', age, title,
     description: desc, personality, speakingStyle, secret,
     triggerPoints: triggers, behaviorPatterns: behavior,
-    avatar: `/characters/${id}.jpg`, fullImage: `/characters/${id}.jpg`,
+    portrait: `/characters/${id}.jpg`,
     joinDay: 1, statMetas: RELATION_STATS,
     initialStats: { affection: initAff, trust: initTrust },
   }
@@ -400,9 +298,56 @@ export function getWorldCharacters(worldId: string): Record<string, Character> {
   )
 }
 
-// ============================================================
-// 场景
-// ============================================================
+// ── 四个世界 ─────────────────────────────────────────
+
+export interface World {
+  id: string
+  name: string
+  icon: string
+  description: string
+  background: string
+  atmosphere: string
+}
+
+export const WORLDS: World[] = [
+  {
+    id: 'palace', name: '权谋深宫', icon: '🏯',
+    description: '大胤王朝，天启十三年。你是一名身份低微的宫女，被卷入后宫争斗的漩涡。',
+    background: '/scenes/palace.jpg',
+    atmosphere: '金碧辉煌的宫殿，暗流涌动的权力博弈',
+  },
+  {
+    id: 'academy', name: '学院奇缘', icon: '🏫',
+    description: '星辉学院，精英云集的私立高中。你是一名转学生，四位性格迥异的男生闯入你的生活。',
+    background: '/scenes/academy.jpg',
+    atmosphere: '阳光明媚的校园，青春洋溢的气息',
+  },
+  {
+    id: 'xianmen', name: '仙门传说', icon: '⛰️',
+    description: '玄天大陆，修仙盛世。你是资质平庸的外门弟子，因奇遇获得上古传承。',
+    background: '/scenes/xianmen.jpg',
+    atmosphere: '云雾缭绕的仙山，剑气纵横的修仙世界',
+  },
+  {
+    id: 'apocalypse', name: '末世求生', icon: '🏚️',
+    description: '病毒爆发后的第三年，人类文明濒临崩溃。你是一名幸存者，在废墟中寻找生机。',
+    background: '/scenes/apocalypse.jpg',
+    atmosphere: '废墟遍地的末世，危机四伏的求生之路',
+  },
+]
+
+// ── 场景 ─────────────────────────────────────────────
+
+export interface Scene {
+  id: string
+  worldId: string
+  name: string
+  icon: string
+  description: string
+  background: string
+  atmosphere: string
+  tags: string[]
+}
 
 export const SCENES: Record<string, Scene> = {
   // ── 灰色空间（跨世界） ──
@@ -503,187 +448,129 @@ export const SCENES: Record<string, Scene> = {
   },
 }
 
-// ============================================================
-// 道具
-// ============================================================
+// ── 道具 ─────────────────────────────────────────────
+
+export interface GameItem {
+  id: string
+  worldId: string | 'universal'
+  name: string
+  icon: string
+  type: 'consumable' | 'collectible' | 'quest' | 'social'
+  description: string
+  maxCount?: number
+}
 
 export const ITEMS: Record<string, GameItem> = {
   // ── 通用道具 ──
-  detector: {
-    id: 'detector', worldId: 'universal', name: '灵魂碎片探测器', icon: '🪞',
-    type: 'quest', description: '古朴铜镜，镜面如水波荡漾，可探测灵魂碎片位置',
-  },
-  memory_stone: {
-    id: 'memory_stone', worldId: 'universal', name: '记忆之石', icon: '💎',
-    type: 'consumable', description: '晶莹水晶内有光晕流动，可暂时恢复一段失去的记忆', maxCount: 4,
-  },
-  potion: {
-    id: 'potion', worldId: 'universal', name: '恢复药水', icon: '🧪',
-    type: 'consumable', description: '红色药水，恢复体力值', maxCount: 10,
-  },
-  candy: {
-    id: 'candy', worldId: 'universal', name: '心情糖果', icon: '🍬',
-    type: 'social', description: '彩色糖果，赠送可提升角色心情',
-  },
+  detector: { id: 'detector', worldId: 'universal', name: '灵魂碎片探测器', icon: '🪞', type: 'quest', description: '古朴铜镜，镜面如水波荡漾，可探测灵魂碎片位置' },
+  memory_stone: { id: 'memory_stone', worldId: 'universal', name: '记忆之石', icon: '💎', type: 'consumable', description: '晶莹水晶内有光晕流动，可暂时恢复一段失去的记忆', maxCount: 4 },
+  potion: { id: 'potion', worldId: 'universal', name: '恢复药水', icon: '🧪', type: 'consumable', description: '红色药水，恢复体力值', maxCount: 10 },
+  candy: { id: 'candy', worldId: 'universal', name: '心情糖果', icon: '🍬', type: 'social', description: '彩色糖果，赠送可提升角色心情' },
   // ── 权谋深宫 ──
-  jade_pendant: {
-    id: 'jade_pendant', worldId: 'palace', name: '羊脂白玉佩', icon: '🟢',
-    type: 'quest', description: '温润如脂刻着凤凰图案，太子母后遗物',
-  },
-  tally: {
-    id: 'tally', worldId: 'palace', name: '玄铁兵符', icon: '🔱',
-    type: 'quest', description: '刻着"摄政王令"的令牌，可调动禁军',
-  },
-  military_tag: {
-    id: 'military_tag', worldId: 'palace', name: '禁军军牌', icon: '🏷️',
-    type: 'quest', description: '铜牌刻着禁军标志，谢无咎的身份象征',
-  },
-  silver_needles: {
-    id: 'silver_needles', worldId: 'palace', name: '太医银针', icon: '💉',
-    type: 'quest', description: '精致银针插在锦缎针囊中，沈清辞的医术工具',
-  },
+  jade_pendant: { id: 'jade_pendant', worldId: 'palace', name: '羊脂白玉佩', icon: '🟢', type: 'quest', description: '温润如脂刻着凤凰图案，太子母后遗物' },
+  tally: { id: 'tally', worldId: 'palace', name: '玄铁兵符', icon: '🔱', type: 'quest', description: '刻着"摄政王令"的令牌，可调动禁军' },
+  military_tag: { id: 'military_tag', worldId: 'palace', name: '禁军军牌', icon: '🏷️', type: 'quest', description: '铜牌刻着禁军标志，谢无咎的身份象征' },
+  silver_needles: { id: 'silver_needles', worldId: 'palace', name: '太医银针', icon: '💉', type: 'quest', description: '精致银针插在锦缎针囊中，沈清辞的医术工具' },
   // ── 学院奇缘 ──
-  badge: {
-    id: 'badge', worldId: 'academy', name: '学生会徽章', icon: '📛',
-    type: 'quest', description: '金色徽章刻着星辉学院校徽，江临渊的身份象征',
-  },
-  lighter: {
-    id: 'lighter', worldId: 'academy', name: '复古打火机', icon: '🔥',
-    type: 'quest', description: '银色打火机刻着狼的图案，陆野的私人物品',
-  },
-  notebook: {
-    id: 'notebook', worldId: 'academy', name: '精装笔记本', icon: '📓',
-    type: 'quest', description: '皮面精装笔记本，苏墨白用来记录知识',
-  },
-  brushes: {
-    id: 'brushes', worldId: 'academy', name: '专业油画笔', icon: '🖌️',
-    type: 'quest', description: '专业油画笔套装各型号齐全，顾言希的创作工具',
-  },
+  badge: { id: 'badge', worldId: 'academy', name: '学生会徽章', icon: '📛', type: 'quest', description: '金色徽章刻着星辉学院校徽，江临渊的身份象征' },
+  lighter: { id: 'lighter', worldId: 'academy', name: '复古打火机', icon: '🔥', type: 'quest', description: '银色打火机刻着狼的图案，陆野的私人物品' },
+  notebook: { id: 'notebook', worldId: 'academy', name: '精装笔记本', icon: '📓', type: 'quest', description: '皮面精装笔记本，苏墨白用来记录知识' },
+  brushes: { id: 'brushes', worldId: 'academy', name: '专业油画笔', icon: '🖌️', type: 'quest', description: '专业油画笔套装各型号齐全，顾言希的创作工具' },
   // ── 仙门传说 ──
-  xuanxiao_sword: {
-    id: 'xuanxiao_sword', worldId: 'xianmen', name: '玄霄剑', icon: '🗡️',
-    type: 'quest', description: '古朴长剑泛着银光，剑柄刻"玄霄"二字',
-  },
-  demon_sword: {
-    id: 'demon_sword', worldId: 'xianmen', name: '无殇魔剑', icon: '⚔️',
-    type: 'quest', description: '漆黑长剑泛着暗红光芒，魔界至宝',
-  },
-  herb_pouch: {
-    id: 'herb_pouch', worldId: 'xianmen', name: '药王谷药囊', icon: '🎒',
-    type: 'quest', description: '绣着药草纹的锦囊，装着珍稀药材',
-  },
-  wine_gourd: {
-    id: 'wine_gourd', worldId: 'xianmen', name: '醉仙酒葫芦', icon: '🍶',
-    type: 'quest', description: '古朴酒葫芦刻着"醉仙"二字，楚星河的标志',
-  },
+  xuanxiao_sword: { id: 'xuanxiao_sword', worldId: 'xianmen', name: '玄霄剑', icon: '🗡️', type: 'quest', description: '古朴长剑泛着银光，剑柄刻"玄霄"二字' },
+  demon_sword: { id: 'demon_sword', worldId: 'xianmen', name: '无殇魔剑', icon: '⚔️', type: 'quest', description: '漆黑长剑泛着暗红光芒，魔界至宝' },
+  herb_pouch: { id: 'herb_pouch', worldId: 'xianmen', name: '药王谷药囊', icon: '🎒', type: 'quest', description: '绣着药草纹的锦囊，装着珍稀药材' },
+  wine_gourd: { id: 'wine_gourd', worldId: 'xianmen', name: '醉仙酒葫芦', icon: '🍶', type: 'quest', description: '古朴酒葫芦刻着"醉仙"二字，楚星河的标志' },
   // ── 末世求生 ──
-  pistol: {
-    id: 'pistol', worldId: 'apocalypse', name: '军用配枪', icon: '🔫',
-    type: 'quest', description: '黑色军用配枪保养精良，霍沉舟多年伙伴',
-  },
-  sniper_rifle: {
-    id: 'sniper_rifle', worldId: 'apocalypse', name: '高精度狙击枪', icon: '🎯',
-    type: 'quest', description: '高精度狙击枪刻着编号，江寒的生命',
-  },
-  medkit: {
-    id: 'medkit', worldId: 'apocalypse', name: '急救医疗箱', icon: '🩺',
-    type: 'quest', description: '白色医疗箱装着各种急救用品，沈慕白的使命',
-  },
-  toolbox: {
-    id: 'toolbox', worldId: 'apocalypse', name: '机械工具箱', icon: '🔧',
-    type: 'quest', description: '银色工具箱装满机械工具，顾野的世界',
-  },
+  pistol: { id: 'pistol', worldId: 'apocalypse', name: '军用配枪', icon: '🔫', type: 'quest', description: '黑色军用配枪保养精良，霍沉舟多年伙伴' },
+  sniper_rifle: { id: 'sniper_rifle', worldId: 'apocalypse', name: '高精度狙击枪', icon: '🎯', type: 'quest', description: '高精度狙击枪刻着编号，江寒的生命' },
+  medkit: { id: 'medkit', worldId: 'apocalypse', name: '急救医疗箱', icon: '🩺', type: 'quest', description: '白色医疗箱装着各种急救用品，沈慕白的使命' },
+  toolbox: { id: 'toolbox', worldId: 'apocalypse', name: '机械工具箱', icon: '🔧', type: 'quest', description: '银色工具箱装满机械工具，顾野的世界' },
 }
 
-// ============================================================
-// 章节（每个世界通用结构）
-// ============================================================
+// ── 章节 ─────────────────────────────────────────────
+
+export interface Chapter {
+  id: number
+  name: string
+  dayRange: [number, number]
+  description: string
+  objectives: string[]
+  atmosphere: string
+}
 
 export const CHAPTERS: Chapter[] = [
-  {
-    id: 1, name: '初入世界', dayRange: [1, 5],
-    description: '适应新世界的身份，与四位男主建立初步联系',
-    objectives: ['了解世界背景', '与四位男主初遇', '建立初步联系'],
-    atmosphere: '新奇与迷茫交织，充满未知的期待',
-  },
-  {
-    id: 2, name: '渐生情愫', dayRange: [6, 12],
-    description: '深入了解男主们的性格与秘密，好感逐步萌芽',
-    objectives: ['与至少两位男主好感达到40', '发现世界的隐藏线索'],
-    atmosphere: '关系逐渐升温，暗涌开始浮现',
-  },
-  {
-    id: 3, name: '心意相通', dayRange: [13, 20],
-    description: '感情升温至关键节点，男主们的秘密逐渐浮出水面',
-    objectives: ['与一位男主好感达到70', '解锁心结剧情'],
-    atmosphere: '感情加速升温，真相即将揭晓',
-  },
-  {
-    id: 4, name: '抉择时刻', dayRange: [21, 27],
-    description: '真相揭露后的艰难抉择，帮助男主解开心结',
-    objectives: ['帮助男主解开心结', '好感度达到90'],
-    atmosphere: '矛盾激化，抉择的重压笼罩一切',
-  },
-  {
-    id: 5, name: '灵魂回收', dayRange: [28, 30],
-    description: '爱意满盈的最后时刻，回收灵魂碎片的终章',
-    objectives: ['好感度达到100', '回收灵魂碎片'],
-    atmosphere: '一切走向终局，离别与新生交织',
-  },
+  { id: 1, name: '初入世界', dayRange: [1, 5], description: '适应新世界的身份，与四位男主建立初步联系', objectives: ['了解世界背景', '与四位男主初遇', '建立初步联系'], atmosphere: '新奇与迷茫交织，充满未知的期待' },
+  { id: 2, name: '渐生情愫', dayRange: [6, 12], description: '深入了解男主们的性格与秘密，好感逐步萌芽', objectives: ['与至少两位男主好感达到40', '发现世界的隐藏线索'], atmosphere: '关系逐渐升温，暗涌开始浮现' },
+  { id: 3, name: '心意相通', dayRange: [13, 20], description: '感情升温至关键节点，男主们的秘密逐渐浮出水面', objectives: ['与一位男主好感达到70', '解锁心结剧情'], atmosphere: '感情加速升温，真相即将揭晓' },
+  { id: 4, name: '抉择时刻', dayRange: [21, 27], description: '真相揭露后的艰难抉择，帮助男主解开心结', objectives: ['帮助男主解开心结', '好感度达到90'], atmosphere: '矛盾激化，抉择的重压笼罩一切' },
+  { id: 5, name: '灵魂回收', dayRange: [28, 30], description: '爱意满盈的最后时刻，回收灵魂碎片的终章', objectives: ['好感度达到100', '回收灵魂碎片'], atmosphere: '一切走向终局，离别与新生交织' },
 ]
 
-// ============================================================
-// 强制事件
-// ============================================================
+// ── 强制事件 ─────────────────────────────────────────
+
+export interface ForcedEvent {
+  id: string
+  name: string
+  triggerDay: number
+  triggerPeriod?: number
+  description: string
+}
 
 export const FORCED_EVENTS: ForcedEvent[] = [
-  {
-    id: 'world_entry', name: '初入世界',
-    triggerDay: 1, triggerPeriod: 0,
-    description: '你穿越到了新世界，获得了新的身份。四位命运交织的男子即将出现在你面前。',
-  },
-  {
-    id: 'midpoint_crisis', name: '信任危机',
-    triggerDay: 15,
-    description: '一个突发事件动摇了你与男主们的关系，你必须做出关键抉择来证明自己。',
-  },
-  {
-    id: 'secret_reveal', name: '秘密浮现',
-    triggerDay: 22,
-    description: '男主最深处的秘密终于浮出水面。你如何回应，将决定一切的走向。',
-  },
+  { id: 'world_entry', name: '初入世界', triggerDay: 1, triggerPeriod: 0, description: '你穿越到了新世界，获得了新的身份。四位命运交织的男子即将出现在你面前。' },
+  { id: 'midpoint_crisis', name: '信任危机', triggerDay: 15, description: '一个突发事件动摇了你与男主们的关系，你必须做出关键抉择来证明自己。' },
+  { id: 'secret_reveal', name: '秘密浮现', triggerDay: 22, description: '男主最深处的秘密终于浮出水面。你如何回应，将决定一切的走向。' },
 ]
 
-// ============================================================
-// 结局
-// ============================================================
+// ── 结局 ─────────────────────────────────────────────
+
+export interface Ending {
+  id: string
+  name: string
+  type: 'TE' | 'HE' | 'NE' | 'BE'
+  description: string
+  condition: string
+}
 
 export const ENDINGS: Ending[] = [
-  {
-    id: 'te-reunion', name: '重逢', type: 'TE',
-    description: '你保留了所有记忆复活，那些被你治愈的灵魂以不同身份出现在新世界。真爱超越轮回。',
-    condition: '集齐四个灵魂碎片 + 触发所有记忆碎片事件 + 最终选择"相信缘分"',
-  },
-  {
-    id: 'he-rebirth', name: '新生', type: 'HE',
-    description: '你复活了，回到原来的世界。不记得那些男主，但灵魂已完整。温馨中带着遗憾。',
-    condition: '集齐四个灵魂碎片 + 选择复活',
-  },
-  {
-    id: 'ne-mirror', name: '轮回之镜', type: 'NE',
-    description: '你成为新的轮回之镜器灵，永远困在灰色空间。记得一切，却再也无法触碰他们。',
-    condition: '集齐四个灵魂碎片 + 选择保留记忆放弃复活',
-  },
-  {
-    id: 'be-dissolve', name: '消散', type: 'BE',
-    description: '时间耗尽，灵魂彻底消散。没有痛苦，没有恐惧，只是归于虚无。',
-    condition: '未在规定时间内完成当前世界目标',
-  },
+  { id: 'te-reunion', name: '重逢', type: 'TE', description: '你保留了所有记忆复活，那些被你治愈的灵魂以不同身份出现在新世界。真爱超越轮回。', condition: '集齐四个灵魂碎片 + 触发所有记忆碎片事件 + 最终选择"相信缘分"' },
+  { id: 'he-rebirth', name: '新生', type: 'HE', description: '你复活了，回到原来的世界。不记得那些男主，但灵魂已完整。温馨中带着遗憾。', condition: '集齐四个灵魂碎片 + 选择复活' },
+  { id: 'ne-mirror', name: '轮回之镜', type: 'NE', description: '你成为新的轮回之镜器灵，永远困在灰色空间。记得一切，却再也无法触碰他们。', condition: '集齐四个灵魂碎片 + 选择保留记忆放弃复活' },
+  { id: 'be-dissolve', name: '消散', type: 'BE', description: '时间耗尽，灵魂彻底消散。没有痛苦，没有恐惧，只是归于虚无。', condition: '未在规定时间内完成当前世界目标' },
 ]
 
-// ============================================================
-// 故事信息
-// ============================================================
+export const ENDING_TYPE_MAP: Record<string, { label: string; gradient: string }> = {
+  BE: { label: '悲剧结局', gradient: 'linear-gradient(135deg, #1a0a1a, #3d1030)' },
+  TE: { label: '转折结局', gradient: 'linear-gradient(135deg, #1a0a2a, #301060)' },
+  HE: { label: '圆满结局', gradient: 'linear-gradient(135deg, #0a1a2a, #103050)' },
+  NE: { label: '平淡结局', gradient: 'linear-gradient(135deg, #0a0a1a, #101030)' },
+}
+
+// ── 消息类型 ─────────────────────────────────────────
+
+export interface Message {
+  id: string
+  role: 'user' | 'assistant' | 'system'
+  content: string
+  timestamp: number
+  character?: string
+  type?: 'scene-transition' | 'world-change' | 'episode-change'
+  sceneId?: string
+  dayInfo?: { day: number; period: string; chapter: string }
+}
+
+// ── 事件记录 ─────────────────────────────────────────
+
+export interface StoryRecord {
+  id: string
+  day: number
+  period: string
+  title: string
+  content: string
+}
+
+// ── 故事信息 ─────────────────────────────────────────
 
 export const STORY_INFO = {
   title: '快穿：千面情缘',
@@ -692,9 +579,17 @@ export const STORY_INFO = {
   goal: '进入四个世界，让男主们真心爱上你，回收灵魂碎片。在爱与记忆之间做出最终抉择。',
 }
 
-// ============================================================
-// 工具函数
-// ============================================================
+// ── 全局资源接口 ─────────────────────────────────────
+
+export interface PlayerStats {
+  beauty: number
+  wisdom: number
+  stamina: number
+  charm: number
+  luck: number
+}
+
+// ── 工具函数 ─────────────────────────────────────────
 
 export function getStatLevel(value: number) {
   if (value >= 81) return { level: 4, name: '倾心', color: '#fbbf24' }

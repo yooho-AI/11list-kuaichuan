@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖 zustand store, framer-motion, lucide-react, 子组件
+ * [INPUT]: 依赖 zustand store, framer-motion, @phosphor-icons/react, AppShell
  * [OUTPUT]: 对外提供 App 根组件
  * [POS]: 根组件，开场/世界选择/游戏/结局四态路由
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -7,28 +7,15 @@
 
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Music, VolumeX, Menu, X } from 'lucide-react'
-import { useGameStore, WORLDS, PERIODS, MAX_DAYS, STORY_INFO, ENDINGS } from '@/lib/store'
+import { MusicNotes, SpeakerSlash, X, FloppyDisk, FolderOpen, ArrowsClockwise, Globe, Diamond, GameController } from '@phosphor-icons/react'
+import { useGameStore, WORLDS, STORY_INFO, ENDINGS, ENDING_TYPE_MAP } from '@/lib/store'
 import type { World } from '@/lib/store'
 import { useBgm } from '@/lib/bgm'
-import { useIsMobile } from '@/lib/hooks'
 import '@/styles/globals.css'
+import '@/styles/opening.css'
+import '@/styles/rich-cards.css'
 
-import CharacterPanel from '@/components/game/character-panel'
-import DialoguePanel from '@/components/game/dialogue-panel'
-import SidePanel from '@/components/game/side-panel'
-import MobileLayout from '@/components/game/mobile-layout'
-
-// ============================================================
-// 结局类型映射
-// ============================================================
-
-const ENDING_TYPE_MAP: Record<string, { label: string; color: string; icon: string }> = {
-  TE: { label: '⭐ True Ending', color: '#ffd700', icon: '👑' },
-  HE: { label: '🎉 Happy Ending', color: '#8b5cf6', icon: '🌟' },
-  NE: { label: '🌙 Normal Ending', color: '#eab308', icon: '🪞' },
-  BE: { label: '💀 Bad Ending', color: '#64748b', icon: '💔' },
-}
+import AppShell from '@/components/game/app-shell'
 
 // ============================================================
 // StartScreen
@@ -130,7 +117,7 @@ function StartScreen() {
         {/* 音乐 */}
         <div style={{ textAlign: 'center', marginTop: 20 }}>
           <button onClick={toggle} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
-            {isPlaying ? <Music size={16} /> : <VolumeX size={16} />}
+            {isPlaying ? <MusicNotes size={16} /> : <SpeakerSlash size={16} />}
           </button>
         </div>
       </div>
@@ -189,43 +176,6 @@ function WorldSelection() {
 }
 
 // ============================================================
-// HeaderBar
-// ============================================================
-
-function HeaderBar({ onMenu }: { onMenu: () => void }) {
-  const { currentDay, currentPeriodIndex, actionPoints, soulFragments, lostMemories, currentWorld, playerStats } = useGameStore()
-  const { isPlaying, toggle } = useBgm()
-  const world = WORLDS.find((w) => w.id === currentWorld)
-
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 16px', borderBottom: '1px solid var(--border)', background: 'rgba(15,10,26,0.9)', backdropFilter: 'blur(12px)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-          {world?.icon} {world?.name}
-        </span>
-        <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-          第{currentDay}/{MAX_DAYS}天 · {PERIODS[currentPeriodIndex].icon}{PERIODS[currentPeriodIndex].name}
-        </span>
-        <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>⚡{actionPoints}</span>
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <span style={{ fontSize: 11, color: '#8b5cf6' }} className="kc-soul-pulse">💎{soulFragments}/4</span>
-        <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>💔{lostMemories.length}</span>
-        <span style={{ fontSize: 10, color: 'var(--text-muted)' }} title={`颜${playerStats.beauty} 智${playerStats.wisdom} 体${playerStats.stamina} 魅${playerStats.charm} 运${playerStats.luck}`}>
-          ✨{Math.round((playerStats.beauty + playerStats.wisdom + playerStats.stamina + playerStats.charm + playerStats.luck) / 5)}
-        </span>
-        <button onClick={toggle} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 4 }}>
-          {isPlaying ? <Music size={14} /> : <VolumeX size={14} />}
-        </button>
-        <button onClick={onMenu} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 4 }}>
-          <Menu size={16} />
-        </button>
-      </div>
-    </div>
-  )
-}
-
-// ============================================================
 // EndingModal
 // ============================================================
 
@@ -234,20 +184,31 @@ function EndingModal() {
   if (!endingType) return null
   const ending = ENDINGS.find((e) => e.id === endingType)
   if (!ending) return null
-  const meta = ENDING_TYPE_MAP[ending.type] ?? ENDING_TYPE_MAP.NE
+  const meta = ENDING_TYPE_MAP[ending.type] ?? { label: '结局', gradient: 'linear-gradient(135deg, #0a0a1a, #101030)' }
+
+  const handleContinue = () => {
+    useGameStore.setState({ endingType: null })
+  }
 
   return (
     <motion.div className="kc-ending-overlay"
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
       <motion.div className="kc-ending-modal"
-        initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.2 }}>
-        <div style={{ fontSize: 48, marginBottom: 12 }}>{meta.icon}</div>
-        <div style={{ fontSize: 12, color: meta.color, fontWeight: 600, marginBottom: 8 }}>{meta.label}</div>
-        <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 12, color: meta.color }}>{ending.name}</h2>
+        initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.2 }}
+        style={{ background: meta.gradient }}>
+        <div style={{ fontSize: 48, marginBottom: 12 }}>🪞</div>
+        <div style={{ fontSize: 12, color: 'var(--primary)', fontWeight: 600, marginBottom: 8 }}>{meta.label}</div>
+        <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 12, color: 'var(--text-primary)' }}>{ending.name}</h2>
         <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: 24 }}>{ending.description}</p>
-        <button className="kc-send-btn" onClick={resetGame} style={{ padding: '10px 28px' }}>
-          重新开始
-        </button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <button className="kc-send-btn" onClick={resetGame} style={{ padding: '10px 28px' }}>
+            重新开始
+          </button>
+          <button className="kc-send-btn" onClick={handleContinue}
+            style={{ padding: '10px 28px', background: 'transparent', border: '1px solid var(--primary-border)' }}>
+            继续探索
+          </button>
+        </div>
       </motion.div>
     </motion.div>
   )
@@ -260,7 +221,6 @@ function EndingModal() {
 function MenuOverlay({ onClose }: { onClose: () => void }) {
   const { saveGame, loadGame, resetGame, completeWorld, currentWorld, characterStats, characters } = useGameStore()
 
-  // 检查是否有角色好感度达到100（可回收碎片）
   const canComplete = currentWorld && Object.entries(characterStats).some(
     ([id, stats]) => characters[id]?.worldId === currentWorld && (stats.affection ?? 0) >= 100
   )
@@ -278,20 +238,32 @@ function MenuOverlay({ onClose }: { onClose: () => void }) {
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <button className="kc-send-btn" style={{ width: '100%', background: 'rgba(139,92,246,0.15)', color: 'var(--primary)', border: '1px solid var(--primary-border)' }}
-            onClick={() => { saveGame(); onClose() }}>💾 保存游戏</button>
+            onClick={() => { saveGame(); onClose() }}>
+            <FloppyDisk size={16} weight="fill" style={{ marginRight: 6 }} /> 保存游戏
+          </button>
           <button className="kc-send-btn" style={{ width: '100%', background: 'rgba(139,92,246,0.15)', color: 'var(--primary)', border: '1px solid var(--primary-border)' }}
-            onClick={() => { loadGame(); onClose() }}>📂 读取存档</button>
+            onClick={() => { loadGame(); onClose() }}>
+            <FolderOpen size={16} weight="fill" style={{ marginRight: 6 }} /> 读取存档
+          </button>
           {canComplete && (
             <button className="kc-send-btn" style={{ width: '100%', background: 'rgba(139,92,246,0.3)', color: '#ffd700', border: '1px solid rgba(255,215,0,0.3)' }}
-              onClick={() => { completeWorld(); onClose() }}>💎 回收灵魂碎片</button>
+              onClick={() => { completeWorld(); onClose() }}>
+              <Diamond size={16} weight="fill" style={{ marginRight: 6 }} /> 回收灵魂碎片
+            </button>
           )}
-          <div className="kc-neon-divider" style={{ margin: '8px 0' }} />
+          <div style={{ height: 1, background: 'var(--border)', margin: '8px 0' }} />
           <button className="kc-send-btn" style={{ width: '100%', background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)' }}
-            onClick={() => { resetGame(); onClose() }}>🔄 重新开始</button>
+            onClick={() => { resetGame(); onClose() }}>
+            <ArrowsClockwise size={16} style={{ marginRight: 6 }} /> 重新开始
+          </button>
           <button className="kc-send-btn" style={{ width: '100%', background: 'rgba(139,92,246,0.15)', color: 'var(--primary)', border: '1px solid var(--primary-border)' }}
-            onClick={() => window.open('https://yooho.ai/', '_blank')}>🌐 返回主页</button>
+            onClick={() => window.open('https://yooho.ai/', '_blank')}>
+            <Globe size={16} style={{ marginRight: 6 }} /> 返回主页
+          </button>
           <button className="kc-send-btn" style={{ width: '100%', background: 'transparent', color: 'var(--text-muted)', border: '1px solid var(--border)' }}
-            onClick={onClose}>继续游戏</button>
+            onClick={onClose}>
+            <GameController size={16} style={{ marginRight: 6 }} /> 继续游戏
+          </button>
         </div>
       </motion.div>
     </motion.div>
@@ -305,7 +277,6 @@ function MenuOverlay({ onClose }: { onClose: () => void }) {
 export default function App() {
   const { gameStarted, currentWorld, endingType } = useGameStore()
   const [showMenu, setShowMenu] = useState(false)
-  const isMobile = useIsMobile()
 
   // 未开始 → 开场页
   if (!gameStarted) return <StartScreen />
@@ -313,32 +284,14 @@ export default function App() {
   // 未选世界 → 世界选择页
   if (!currentWorld) return <WorldSelection />
 
-  // 移动端布局
-  if (isMobile) return <MobileLayout />
-
   return (
-    <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column' }}>
-      <HeaderBar onMenu={() => setShowMenu(true)} />
-
-      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-        {/* 左栏 */}
-        <div style={{ width: 280, borderRight: '1px solid var(--border)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-          <CharacterPanel />
-        </div>
-
-        {/* 中栏 */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <DialoguePanel />
-        </div>
-
-        {/* 右栏 */}
-        <SidePanel />
-      </div>
+    <>
+      <AppShell onMenuOpen={() => setShowMenu(true)} />
 
       <AnimatePresence>
         {showMenu && <MenuOverlay onClose={() => setShowMenu(false)} />}
         {endingType && <EndingModal />}
       </AnimatePresence>
-    </div>
+    </>
   )
 }
